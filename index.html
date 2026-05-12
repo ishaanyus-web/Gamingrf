@@ -145,6 +145,90 @@
             text-shadow: 0 0 10px #ff00ff;
             margin-top: 5px;
         }
+
+        #levelInfo {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff00ff;
+            border-radius: 5px;
+            padding: 10px 20px;
+            color: #ff00ff;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #score {
+            position: absolute;
+            top: 180px;
+            left: 20px;
+            z-index: 100;
+            color: #ffaa00;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 0 10px #ffaa00;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border: 2px solid #ffaa00;
+            border-radius: 5px;
+        }
+
+        #highscores {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ffff00;
+            border-radius: 5px;
+            padding: 15px;
+            color: #ffff00;
+            font-size: 12px;
+            max-width: 250px;
+            font-weight: bold;
+        }
+
+        .highscore-item {
+            margin: 5px 0;
+            padding: 5px;
+            background: rgba(255, 255, 0, 0.1);
+            border-radius: 3px;
+        }
+
+        #mobileControls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            display: none;
+            gap: 10px;
+        }
+
+        .mobile-btn {
+            background: linear-gradient(135deg, #00ffff, #0088ff);
+            color: #000;
+            border: 2px solid #00ffff;
+            padding: 15px 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            touch-action: manipulation;
+        }
+
+        @media (max-width: 768px) {
+            #mobileControls {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            #controls {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -156,9 +240,22 @@
             <div class="subtitle">Web Edition</div>
         </div>
 
+        <div id="levelInfo">
+            <span id="levelText">Level 1</span>
+        </div>
+
         <div id="ui">
             <div id="health">Health: 100 / 100</div>
             <div id="enemies">Enemies: 2</div>
+        </div>
+
+        <div id="score">
+            Score: <span id="scoreValue">0</span>
+        </div>
+
+        <div id="highscores">
+            Top 5 Scores:
+            <div id="scoresList"></div>
         </div>
 
         <div id="controls">
@@ -166,6 +263,13 @@
             <div class="control-line"><span class="key">D</span> Move Right</div>
             <div class="control-line"><span class="key">SPACE</span> Jump</div>
             <div class="control-line"><span class="key">CLICK</span> Attack</div>
+        </div>
+
+        <div id="mobileControls">
+            <button class="mobile-btn" onmousedown="mobileMove(-1)" onmouseup="mobileMove(0)" ontouchstart="mobileMove(-1)" ontouchend="mobileMove(0)">← LEFT</button>
+            <button class="mobile-btn" onmousedown="mobileJump()" ontouchstart="mobileJump()">↑ JUMP</button>
+            <button class="mobile-btn" onmousedown="mobileMove(1)" onmouseup="mobileMove(0)" ontouchstart="mobileMove(1)" ontouchend="mobileMove(0)">RIGHT →</button>
+            <button class="mobile-btn" onmousedown="mobileAttack()" ontouchstart="mobileAttack()">⚔ ATTACK</button>
         </div>
 
         <div id="status">Ready to play! Click START GAME</div>
@@ -179,6 +283,43 @@
         const status = document.getElementById('status');
         const healthUI = document.getElementById('health');
         const enemiesUI = document.getElementById('enemies');
+        const levelText = document.getElementById('levelText');
+        const scoreValue = document.getElementById('scoreValue');
+        const scoresList = document.getElementById('scoresList');
+
+        // Audio context for sound effects
+        let audioContext;
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Sound effects
+        function playSound(frequency, duration, type = 'sine') {
+            initAudio();
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.frequency.value = frequency;
+            osc.type = type;
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            
+            osc.start(now);
+            osc.stop(now + duration);
+        }
+
+        function playSoundAttack() { playSound(400, 0.1); playSound(600, 0.1); }
+        function playSoundEnemyHit() { playSound(200, 0.15); }
+        function playSoundVictory() { playSound(800, 0.2); playSound(1000, 0.2); }
+        function playSoundGameOver() { playSound(100, 0.5); }
+        function playSoundJump() { playSound(300, 0.1); }
+        function playSoundLevelUp() { playSound(500, 0.1); playSound(700, 0.1); playSound(900, 0.1); }
 
         // Set canvas to window size
         function resizeCanvas() {
@@ -192,12 +333,31 @@
         // Game variables
         const gravity = 0.6;
         let gameRunning = false;
+        let currentLevel = 1;
+        let score = 0;
+        let mobileMovement = 0;
+
+        // Highscores (from localStorage)
+        let highscores = JSON.parse(localStorage.getItem('hollowKnightScores')) || [];
+
+        function saveHighscore(points) {
+            highscores.push(points);
+            highscores.sort((a, b) => b - a);
+            highscores = highscores.slice(0, 5);
+            localStorage.setItem('hollowKnightScores', JSON.stringify(highscores));
+            updateHighscoresDisplay();
+        }
+
+        function updateHighscoresDisplay() {
+            scoresList.innerHTML = highscores.map((score, i) => 
+                `<div class="highscore-item">#${i + 1}: ${score} pts</div>`
+            ).join('');
+        }
+
+        updateHighscoresDisplay();
 
         // Draw Knight Character
         function drawKnight(x, y, width, height, isFlipped = false) {
-            const scale = width / 40;
-            
-            // Save context state
             ctx.save();
             ctx.translate(x + width / 2, y);
             if (isFlipped) ctx.scale(-1, 1);
@@ -288,15 +448,15 @@
         }
 
         // Draw Enemy (creature-like)
-        function drawEnemy(x, y, width, height) {
+        function drawEnemy(x, y, width, height, isBoss = false) {
             // Body
-            ctx.fillStyle = '#ff1744';
+            ctx.fillStyle = isBoss ? '#ff00ff' : '#ff1744';
             ctx.beginPath();
             ctx.ellipse(x + width / 2, y + height * 0.5, width * 0.4, height * 0.4, 0, 0, Math.PI * 2);
             ctx.fill();
 
             // Head
-            ctx.fillStyle = '#ff6b6b';
+            ctx.fillStyle = isBoss ? '#ff66ff' : '#ff6b6b';
             ctx.beginPath();
             ctx.arc(x + width / 2, y + height * 0.15, width * 0.35, 0, Math.PI * 2);
             ctx.fill();
@@ -320,25 +480,20 @@
             ctx.fill();
 
             // Spikes/Tentacles
-            ctx.strokeStyle = '#ff1744';
-            ctx.lineWidth = 3;
-            for (let i = 0; i < 4; i++) {
-                const angle = (Math.PI * 2 * i) / 4;
+            ctx.strokeStyle = isBoss ? '#ff00ff' : '#ff1744';
+            ctx.lineWidth = isBoss ? 5 : 3;
+            const spikeCount = isBoss ? 6 : 4;
+            for (let i = 0; i < spikeCount; i++) {
+                const angle = (Math.PI * 2 * i) / spikeCount;
                 const sx = x + width / 2 + Math.cos(angle) * width * 0.35;
                 const sy = y + height * 0.5 + Math.sin(angle) * height * 0.35;
-                const ex = x + width / 2 + Math.cos(angle) * width * 0.55;
-                const ey = y + height * 0.5 + Math.sin(angle) * height * 0.55;
+                const ex = x + width / 2 + Math.cos(angle) * width * (isBoss ? 0.7 : 0.55);
+                const ey = y + height * 0.5 + Math.sin(angle) * height * (isBoss ? 0.7 : 0.55);
                 ctx.beginPath();
                 ctx.moveTo(sx, sy);
                 ctx.lineTo(ex, ey);
                 ctx.stroke();
             }
-
-            // Health bar
-            ctx.fillStyle = '#333';
-            ctx.fillRect(x, y - 15, width, 8);
-            ctx.fillStyle = '#ff1744';
-            ctx.fillRect(x, y - 15, width * 0.8, 8); // This will be updated in game
         }
 
         // Player object
@@ -381,20 +536,43 @@
             }
         });
 
+        // Mobile controls
+        function mobileMove(dir) {
+            mobileMovement = dir;
+        }
+
+        function mobileJump() {
+            if (gameRunning && !player.isJumping) {
+                const groundY = canvas.height - 100;
+                if (player.y + player.height >= groundY) {
+                    player.velocityY = player.jumpPower;
+                    player.isJumping = true;
+                    playSoundJump();
+                }
+            }
+        }
+
+        function mobileAttack() {
+            if (gameRunning) {
+                attackEnemy(player.x + player.width / 2, player.y);
+            }
+        }
+
         // Enemy class
         class Enemy {
-            constructor(x, y) {
+            constructor(x, y, isBoss = false) {
                 this.x = x;
                 this.y = y;
-                this.width = 50;
-                this.height = 50;
+                this.width = isBoss ? 80 : 50;
+                this.height = isBoss ? 80 : 50;
                 this.velocityY = 0;
-                this.health = 30;
-                this.maxHealth = 30;
-                this.speed = 3;
+                this.health = isBoss ? 100 : 30;
+                this.maxHealth = isBoss ? 100 : 30;
+                this.speed = isBoss ? 2 : 3;
                 this.direction = 1;
-                this.detectionRange = 300;
+                this.detectionRange = 400;
                 this.chasing = false;
+                this.isBoss = isBoss;
             }
 
             update() {
@@ -431,7 +609,7 @@
 
                 // Collision with player
                 if (this.isCollidingWith(player)) {
-                    player.health -= 0.3;
+                    player.health -= this.isBoss ? 1 : 0.3;
                 }
             }
 
@@ -443,12 +621,12 @@
             }
 
             draw() {
-                drawEnemy(this.x, this.y, this.width, this.height);
+                drawEnemy(this.x, this.y, this.width, this.height, this.isBoss);
                 
                 // Health bar
                 ctx.fillStyle = '#333';
                 ctx.fillRect(this.x, this.y - 15, this.width, 8);
-                ctx.fillStyle = '#ff1744';
+                ctx.fillStyle = this.isBoss ? '#ff00ff' : '#ff1744';
                 ctx.fillRect(this.x, this.y - 15, (this.health / this.maxHealth) * this.width, 8);
             }
         }
@@ -461,26 +639,44 @@
             player.health = 100;
             player.isJumping = false;
             player.isFlipped = false;
+            score = 0;
+            scoreValue.textContent = '0';
 
             const groundY = canvas.height - 100;
-            enemies = [
-                new Enemy(canvas.width / 3, groundY - 50),
-                new Enemy((canvas.width * 2) / 3, groundY - 50)
-            ];
+            enemies = [];
+
+            if (currentLevel === 1) {
+                enemies = [
+                    new Enemy(canvas.width / 3, groundY - 50),
+                    new Enemy((canvas.width * 2) / 3, groundY - 50)
+                ];
+            } else if (currentLevel === 2) {
+                enemies = [
+                    new Enemy(canvas.width / 4, groundY - 50),
+                    new Enemy((canvas.width * 2) / 4, groundY - 50),
+                    new Enemy((canvas.width * 3) / 4, groundY - 50)
+                ];
+            } else if (currentLevel === 3) {
+                enemies = [
+                    new Enemy(canvas.width / 2, groundY - 100, true) // Boss
+                ];
+            }
+
+            levelText.textContent = `Level ${currentLevel}`;
         }
 
         function updatePlayer() {
             // Horizontal movement
-            if (keys['a']) {
-                player.velocityX = -player.speed;
+            let moveDir = 0;
+            if (keys['a'] || mobileMovement === -1) {
+                moveDir = -1;
                 player.isFlipped = true;
-            } else if (keys['d']) {
-                player.velocityX = player.speed;
+            } else if (keys['d'] || mobileMovement === 1) {
+                moveDir = 1;
                 player.isFlipped = false;
-            } else {
-                player.velocityX = 0;
             }
 
+            player.velocityX = moveDir * player.speed;
             player.x += player.velocityX;
 
             // Boundary
@@ -503,6 +699,7 @@
             if ((keys[' '] || keys['w']) && !player.isJumping) {
                 player.velocityY = player.jumpPower;
                 player.isJumping = true;
+                playSoundJump();
             }
         }
 
@@ -514,6 +711,10 @@
                 );
                 if (distance < 150) {
                     enemy.health -= 20;
+                    playSoundAttack();
+                    playSoundEnemyHit();
+                    score += 10;
+                    scoreValue.textContent = score;
                 }
             });
         }
@@ -550,22 +751,51 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+                ctx.font = 'bold 30px Arial';
+                ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 60);
                 gameRunning = false;
+                playSoundGameOver();
+                saveHighscore(score);
                 status.textContent = '💀 Game Over! Click START GAME to try again';
                 status.style.color = '#ff0000';
             }
 
-            if (enemies.every(e => e.health <= 0)) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#00ff00';
-                ctx.font = 'bold 80px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('YOU WIN!', canvas.width / 2, canvas.height / 2);
-                gameRunning = false;
-                status.textContent = '🎉 Victory! All enemies defeated!';
-                status.style.color = '#00ff00';
+            if (enemies.every(e => e.health <= 0) && enemies.length > 0) {
+                if (currentLevel === 3) {
+                    // Final victory
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#00ff00';
+                    ctx.font = 'bold 80px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('YOU WIN!', canvas.width / 2, canvas.height / 2);
+                    ctx.font = 'bold 30px Arial';
+                    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 60);
+                    gameRunning = false;
+                    playSoundVictory();
+                    saveHighscore(score);
+                    status.textContent = '🎉 Victory! You defeated the boss!';
+                    status.style.color = '#00ff00';
+                } else {
+                    // Next level
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#ffff00';
+                    ctx.font = 'bold 60px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('LEVEL COMPLETE!', canvas.width / 2, canvas.height / 2);
+                    ctx.font = 'bold 30px Arial';
+                    ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 60);
+                    gameRunning = false;
+                    playSoundLevelUp();
+                    
+                    setTimeout(() => {
+                        currentLevel++;
+                        startGame();
+                    }, 3000);
+                }
             }
         }
 
