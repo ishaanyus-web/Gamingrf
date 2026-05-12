@@ -1,0 +1,24 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are meant to be changed by the
+; editor. Any editor metadata, as well as custom variable and
+; resource declarations, will be removed if the editor metadata is
+; changed in the editor.
+
+config_version=5
+
+[application]
+
+config/name="Hollow Knight Game"
+config/version="0.1.0"
+run/main_scene="res://scenes/level/level_1.tscn"
+config/features=PackedStringArray("4.1", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=800
+window/size/viewport_height=450
+
+[input]
+
+ui_select={"deadzone": 0.5, "events": [Object(InputEventKey, {"scancode": 32, "physical_scancode": 32, "key_label": 32, "unicode": 32, "echo": false, "pressed": false, "keycode": 32})]}
