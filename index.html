@@ -13,255 +13,181 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 100%);
+            background: #0a0e27;
             color: #e0e0e0;
-            min-height: 100vh;
+            width: 100%;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            animation: fadeIn 0.8s ease-in;
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        h1 {
-            font-size: 3.5em;
-            color: #00ffff;
-            text-shadow: 0 0 20px #00ffff, 0 0 40px #0088ff;
-            margin-bottom: 10px;
-            letter-spacing: 3px;
-        }
-
-        .tagline {
-            font-size: 1.2em;
-            color: #ff00ff;
-            text-shadow: 0 0 10px #ff00ff;
-        }
-
-        .container {
-            max-width: 900px;
+        #gameCanvas {
             width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .game-section {
-            background: rgba(15, 20, 50, 0.8);
-            border: 2px solid #00ffff;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .info-section {
-            background: rgba(15, 20, 50, 0.8);
-            border: 2px solid #ff00ff;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .game-canvas {
-            width: 100%;
-            aspect-ratio: 16/9;
+            height: 100%;
+            display: block;
             background: #000;
-            border: 2px solid #00ff00;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 0 0 10px #00ffff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border: 2px solid #00ffff;
             border-radius: 5px;
-            margin-bottom: 20px;
+        }
+
+        #status {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            padding: 15px 30px;
+            color: #00ff00;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff00ff;
+            border-radius: 5px;
+            padding: 15px;
+            color: #ff00ff;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .control-line {
+            margin: 5px 0;
+        }
+
+        .key {
+            background: #00ffff;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
         }
 
         button {
-            background: linear-gradient(135deg, #00ffff, #0088ff);
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
             color: #000;
             border: none;
-            padding: 12px 30px;
-            font-size: 1em;
+            padding: 12px 25px;
+            font-size: 14px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
+            z-index: 100;
             transition: all 0.3s;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
         button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px #00ffff;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #ff00ff;
         }
 
         button:active {
             transform: scale(0.95);
         }
 
-        h2 {
-            color: #00ffff;
-            margin-bottom: 15px;
-            font-size: 1.8em;
-        }
-
-        .controls {
-            background: rgba(0, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-
-        .control-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-        }
-
-        .control-item:last-child {
-            border-bottom: none;
-        }
-
-        .key {
-            background: #00ffff;
-            color: #000;
-            padding: 4px 12px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-family: monospace;
-        }
-
-        .features {
-            list-style: none;
-        }
-
-        .features li {
-            padding: 8px 0;
-            color: #ff00ff;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .features li:before {
-            content: "►";
+        #title {
             position: absolute;
-            left: 0;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
             color: #00ffff;
+            font-size: 28px;
+            text-shadow: 0 0 20px #00ffff, 0 0 40px #0088ff;
+            letter-spacing: 3px;
+            font-weight: bold;
+            text-align: right;
         }
 
-        .links {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        a {
-            color: #00ffff;
-            text-decoration: none;
-            margin: 0 15px;
-            transition: all 0.3s;
-        }
-
-        a:hover {
+        .subtitle {
+            font-size: 14px;
             color: #ff00ff;
             text-shadow: 0 0 10px #ff00ff;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-
-            h1 {
-                font-size: 2.5em;
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .status {
-            text-align: center;
-            color: #00ff00;
-            font-weight: bold;
-            padding: 10px;
-            background: rgba(0, 255, 0, 0.1);
-            border-radius: 5px;
-            margin-top: 10px;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>⚔️ HOLLOW KNIGHT ⚔️</h1>
-        <p class="tagline">Web Edition - Play in Your Browser</p>
-    </header>
-
-    <div class="container">
-        <div class="game-section">
-            <h2>🎮 Game</h2>
-            <canvas id="gameCanvas" class="game-canvas"></canvas>
-            <button onclick="startGame()">▶ START GAME</button>
-            <button onclick="resetGame()" style="margin-left: 10px;">↻ RESET</button>
-            <div class="status" id="status">Ready to play!</div>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="title">
+            ⚔️ HOLLOW KNIGHT ⚔️
+            <div class="subtitle">Web Edition</div>
         </div>
 
-        <div class="info-section">
-            <h2>📖 How to Play</h2>
-            <div class="controls">
-                <div class="control-item">
-                    <span>Move Left</span>
-                    <span class="key">A</span>
-                </div>
-                <div class="control-item">
-                    <span>Move Right</span>
-                    <span class="key">D</span>
-                </div>
-                <div class="control-item">
-                    <span>Jump</span>
-                    <span class="key">SPACE</span>
-                </div>
-                <div class="control-item">
-                    <span>Attack</span>
-                    <span class="key">CLICK</span>
-                </div>
-            </div>
-
-            <h3 style="color: #ff00ff; margin: 20px 0 10px 0;">✨ Features</h3>
-            <ul class="features">
-                <li>Smooth platforming mechanics</li>
-                <li>Enemy AI with patrol & chase</li>
-                <li>Combat system with damage</li>
-                <li>Health tracking</li>
-                <li>Multiple levels to explore</li>
-                <li>Boss battles</li>
-            </ul>
-
-            <div class="links">
-                <a href="https://github.com/ishaanyus-web/Gamingrf" target="_blank">GitHub Repository</a>
-                <a href="#">Source Code</a>
-            </div>
+        <div id="ui">
+            <div id="health">Health: 100 / 100</div>
+            <div id="enemies">Enemies: 2</div>
         </div>
+
+        <div id="controls">
+            <div class="control-line"><span class="key">A</span> Move Left</div>
+            <div class="control-line"><span class="key">D</span> Move Right</div>
+            <div class="control-line"><span class="key">SPACE</span> Jump</div>
+            <div class="control-line"><span class="key">CLICK</span> Attack</div>
+        </div>
+
+        <div id="status">Ready to play! Click START GAME</div>
+
+        <button onclick="startGame()">▶ START GAME</button>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const status = document.getElementById('status');
+        const healthUI = document.getElementById('health');
+        const enemiesUI = document.getElementById('enemies');
 
-        // Set canvas size
-        canvas.width = 800;
-        canvas.height = 450;
+        // Set canvas to window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
         // Game variables
         const gravity = 0.6;
@@ -270,16 +196,16 @@
         // Player object
         const player = {
             x: 100,
-            y: 300,
-            width: 30,
-            height: 40,
+            y: canvas.height - 150,
+            width: 40,
+            height: 50,
             velocityY: 0,
             velocityX: 0,
             isJumping: false,
             health: 100,
             maxHealth: 100,
-            speed: 5,
-            jumpPower: -12
+            speed: 7,
+            jumpPower: -15
         };
 
         // Enemies array
@@ -311,14 +237,14 @@
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.width = 30;
-                this.height = 30;
+                this.width = 40;
+                this.height = 40;
                 this.velocityY = 0;
                 this.health = 30;
                 this.maxHealth = 30;
-                this.speed = 2;
+                this.speed = 3;
                 this.direction = 1;
-                this.detectionRange = 200;
+                this.detectionRange = 300;
                 this.chasing = false;
             }
 
@@ -328,8 +254,9 @@
                 this.y += this.velocityY;
 
                 // Collision with ground
-                if (this.y + this.height >= 380) {
-                    this.y = 380 - this.height;
+                const groundY = canvas.height - 100;
+                if (this.y + this.height >= groundY) {
+                    this.y = groundY - this.height;
                     this.velocityY = 0;
                 }
 
@@ -355,7 +282,7 @@
 
                 // Collision with player
                 if (this.isCollidingWith(player)) {
-                    player.health -= 0.5;
+                    player.health -= 0.3;
                 }
             }
 
@@ -371,25 +298,31 @@
                 ctx.fillStyle = '#ff1744';
                 ctx.fillRect(this.x, this.y, this.width, this.height);
 
+                // Eyes
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(this.x + 8, this.y + 10, 8, 8);
+                ctx.fillRect(this.x + 24, this.y + 10, 8, 8);
+
                 // Health bar
                 ctx.fillStyle = '#333';
-                ctx.fillRect(this.x, this.y - 10, this.width, 5);
+                ctx.fillRect(this.x, this.y - 15, this.width, 8);
                 ctx.fillStyle = '#ff1744';
-                ctx.fillRect(this.x, this.y - 10, (this.health / this.maxHealth) * this.width, 5);
+                ctx.fillRect(this.x, this.y - 15, (this.health / this.maxHealth) * this.width, 8);
             }
         }
 
         function initGame() {
             player.x = 100;
-            player.y = 300;
+            player.y = canvas.height - 150;
             player.velocityY = 0;
             player.velocityX = 0;
             player.health = 100;
             player.isJumping = false;
 
+            const groundY = canvas.height - 100;
             enemies = [
-                new Enemy(300, 350),
-                new Enemy(600, 350)
+                new Enemy(canvas.width / 3, groundY - 40),
+                new Enemy((canvas.width * 2) / 3, groundY - 40)
             ];
         }
 
@@ -410,8 +343,9 @@
             player.y += player.velocityY;
 
             // Ground collision
-            if (player.y + player.height >= 380) {
-                player.y = 380 - player.height;
+            const groundY = canvas.height - 100;
+            if (player.y + player.height >= groundY) {
+                player.y = groundY - player.height;
                 player.velocityY = 0;
                 player.isJumping = false;
             }
@@ -429,7 +363,7 @@
                     Math.pow(mouseX - (enemy.x + enemy.width / 2), 2) +
                     Math.pow(mouseY - (enemy.y + enemy.height / 2), 2)
                 );
-                if (distance < 100) {
+                if (distance < 150) {
                     enemy.health -= 20;
                 }
             });
@@ -439,45 +373,52 @@
             ctx.fillStyle = '#00ffff';
             ctx.fillRect(player.x, player.y, player.width, player.height);
 
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.fillRect(player.x + 8, player.y + 10, 6, 6);
+            ctx.fillRect(player.x + 26, player.y + 10, 6, 6);
+
             // Health bar
             ctx.fillStyle = '#333';
-            ctx.fillRect(player.x, player.y - 15, player.width, 5);
+            ctx.fillRect(player.x, player.y - 20, player.width, 10);
             ctx.fillStyle = player.health > 50 ? '#00ff00' : '#ffaa00';
-            ctx.fillRect(player.x, player.y - 15, (player.health / player.maxHealth) * player.width, 5);
+            ctx.fillRect(player.x, player.y - 20, (player.health / player.maxHealth) * player.width, 10);
         }
 
         function drawGround() {
-            ctx.fillStyle = '#444';
-            ctx.fillRect(0, 380, canvas.width, 70);
-            ctx.strokeStyle = '#666';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, 380, canvas.width, 70);
+            const groundY = canvas.height - 100;
+            ctx.fillStyle = '#2a4d2a';
+            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(0, groundY, canvas.width, canvas.height - groundY);
         }
 
         function drawUI() {
-            ctx.fillStyle = '#00ffff';
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText(`Health: ${Math.max(0, Math.floor(player.health))} / ${player.maxHealth}`, 20, 30);
-            ctx.fillText(`Enemies: ${enemies.filter(e => e.health > 0).length}`, 20, 60);
+            // Update UI text
+            healthUI.textContent = `Health: ${Math.max(0, Math.floor(player.health))} / ${player.maxHealth}`;
+            enemiesUI.textContent = `Enemies: ${enemies.filter(e => e.health > 0).length}`;
 
             if (player.health <= 0) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#ff0000';
-                ctx.font = 'bold 48px Arial';
+                ctx.font = 'bold 80px Arial';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
                 gameRunning = false;
-                status.textContent = '💀 Game Over! Click RESET to try again';
+                status.textContent = '💀 Game Over! Click START GAME to try again';
                 status.style.color = '#ff0000';
             }
 
             if (enemies.every(e => e.health <= 0)) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#00ff00';
-                ctx.font = 'bold 48px Arial';
+                ctx.font = 'bold 80px Arial';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 ctx.fillText('YOU WIN!', canvas.width / 2, canvas.height / 2);
                 gameRunning = false;
                 status.textContent = '🎉 Victory! All enemies defeated!';
@@ -515,13 +456,6 @@
             gameRunning = true;
             initGame();
             status.textContent = '🎮 Game Running! Defeat all enemies!';
-            status.style.color = '#00ff00';
-        }
-
-        function resetGame() {
-            gameRunning = false;
-            initGame();
-            status.textContent = 'Ready to play!';
             status.style.color = '#00ff00';
         }
 
